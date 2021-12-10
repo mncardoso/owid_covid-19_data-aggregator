@@ -49,23 +49,26 @@ with open(file_name, "r") as doc:
         data.append(line)
 
 data_date = []
-data_new_cases = []
-data_new_deaths = []
+data_new_cases_smoothed = []
+data_new_deaths_smoothed = []
 
 for day in data:
     for date in day:
         data_date.append(date)
-        data_new_cases.append(day[date]["new_cases"])
-        data_new_deaths.append(day[date]["new_deaths"])
+        data_new_cases_smoothed.append(day[date]["new_cases_smoothed"])
+        data_new_deaths_smoothed.append(day[date]["new_deaths_smoothed"])
 
 
-plt.plot(data_date, data_new_cases, label="New Cases")
-plt.plot(data_date, data_new_deaths, label="New Deaths")
+plt.plot(data_date, data_new_cases_smoothed, label="New Cases Smoothed")
+plt.plot(data_date, data_new_deaths_smoothed, label="New Deaths Smoothed")
 
 
 plt.xlabel('date')
 plt.ylabel('people')
 
+plt.xticks(rotation=90)
+
 plt.title('Covid-19')
+plt.legend()
 
 plt.show()

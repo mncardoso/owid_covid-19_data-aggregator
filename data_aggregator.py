@@ -1,5 +1,6 @@
 import urllib.request
 import json
+import os
 
 # -> country codes for verification
 country_codes = ('AFG', 'OWID_AFR', 'ALB', 'DZA', 'AND', 'AGO', 'AIA', 'ATG',
@@ -38,21 +39,21 @@ country_codes = ('AFG', 'OWID_AFR', 'ALB', 'DZA', 'AND', 'AGO', 'AIA', 'ATG',
 
 # Confirmed cases
 total_cases = False
-new_cases = True  # <-
-new_cases_smoothed = False
+new_cases = False
+new_cases_smoothed = True  # <-
 total_cases_per_million = False
 new_cases_per_million = False
 new_cases_smoothed_per_million = False
 
 # Confirmed deaths
 total_deaths = False
-new_deaths = True  # <-
-new_deaths_smoothed = False
+new_deaths = False
+new_deaths_smoothed = True  # <-
 total_deaths_per_million = False
 new_deaths_per_million = False
 new_deaths_smoothed_per_million = False
 
-# Excess mortality -> Not working
+# Excess mortality
 excess_mortality = False
 excess_mortality_cumulative = False
 excess_mortality_cumulative_absolute = False
@@ -65,16 +66,16 @@ hosp_patients = False
 hosp_patients_per_million = False
 weekly_icu_admissions = False
 weekly_icu_admissions_per_million = False
-weekly_hosp_admissions = False
+weekly_hosp_admissions = True  # <-
 weekly_hosp_admissions_per_million = False
 
-# Policy responses -> Not working
+# Policy responses
 stringency_index = False
 
-# Reproduction rate -> Not working
+# Reproduction rate
 reproduction_rate = False
 
-# Tests & positivity -> Not working
+# Tests & positivity
 total_tests = False
 new_tests = False
 total_tests_per_thousand = False
@@ -85,7 +86,7 @@ positive_rate = False
 tests_per_case = False
 tests_units = False
 
-# Vaccinations -> Not working
+# Vaccinations
 total_vaccinations = False
 people_vaccinated = False
 people_fully_vaccinated = False
@@ -100,27 +101,28 @@ new_people_vaccinated_smoothed = False
 new_people_vaccinated_smoothed_per_hundred = False
 
 
-# date = True
-# total_vaccinations = False
-# people_vaccinated = False
-# people_fully_vaccinated = False
-# daily_vaccinations_raw = False
-# daily_vaccinations = False
-# total_vaccinations_per_hundred = False
-# people_vaccinated_per_hundred = False
-# people_fully_vaccinated_per_hundred = False
-# daily_vaccinations_per_million = False
-# daily_people_vaccinated = False
-# daily_people_vaccinated_per_hundred = False
+# TODO daily_vaccinations_raw = False
+# TODO daily_vaccinations = False
+# TODO daily_vaccinations_per_million = False
+# TODO daily_people_vaccinated = False
+# TODO daily_people_vaccinated_per_hundred = False
 
 # =========
 # functions
 # =========
 
 
-def new_case_data(country_code: str):  # ->
+def new_case_data(country_code: str):  # -> GET
+    global date_last
+    file_name = country_code + ".txt"
+    if os.path.isfile(file_name):
+        with open(file_name, "r") as doc:
+            for line in doc.readlines():
+                for key in eval(line):
+                    date_last = [int(x) for x in key.split('-')]
     output = {}
-    with urllib.request.urlopen("https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.json") as url:
+    link = "https://covid.ourworldindata.org/data/owid-covid-data.json"
+    with urllib.request.urlopen(link) as url:
         data = eval(json.dumps(json.loads(url.read().decode())))
         for date in data[country_code]['data']:
             day_data = eval(str(date))
@@ -239,6 +241,223 @@ def new_case_data(country_code: str):  # ->
                     output[day_data['date']][
                         'new_deaths_smoothed_per_million'] = 0
 
+            # Excess mortality
+            if excess_mortality:
+                if 'excess_mortality' in day_data:
+                    output[day_data['date']][
+                        'excess_mortality'
+                    ] = eval(str(day_data[
+                        'excess_mortality']))
+                else:
+                    output[day_data['date']][
+                        'excess_mortality'] = 0
+            if excess_mortality_cumulative:
+                if 'excess_mortality_cumulative' in day_data:
+                    output[day_data['date']][
+                        'excess_mortality_cumulative'
+                    ] = eval(str(day_data[
+                        'excess_mortality_cumulative']))
+                else:
+                    output[day_data['date']][
+                        'excess_mortality_cumulative'] = 0
+            if excess_mortality:
+                if 'excess_mortality_cumulative_absolute' in day_data:
+                    output[day_data['date']][
+                        'excess_mortality_cumulative_absolute'
+                    ] = eval(str(day_data[
+                        'excess_mortality_cumulative_absolute']))
+                else:
+                    output[day_data['date']][
+                        'excess_mortality_cumulative_absolute'] = 0
+            if excess_mortality_cumulative_per_million:
+                if 'excess_mortality_cumulative_per_million' in day_data:
+                    output[day_data['date']][
+                        'excess_mortality_cumulative_per_million'
+                    ] = eval(str(day_data[
+                        'excess_mortality_cumulative_per_million']))
+                else:
+                    output[day_data['date']][
+                        'excess_mortality_cumulative_per_million'] = 0
+
+            # Hospital & ICU -> Not working
+            if icu_patients:
+                if 'icu_patients' in day_data:
+                    output[day_data['date']][
+                        'icu_patients'
+                    ] = eval(str(day_data[
+                        'icu_patients']))
+                else:
+                    output[day_data['date']][
+                        'icu_patients'] = 0
+            if icu_patients_per_million:
+                if 'icu_patients_per_million' in day_data:
+                    output[day_data['date']][
+                        'icu_patients_per_million'
+                    ] = eval(str(day_data[
+                        'icu_patients_per_million']))
+                else:
+                    output[day_data['date']][
+                        'icu_patients_per_million'] = 0
+            if hosp_patients:
+                if 'hosp_patients' in day_data:
+                    output[day_data['date']][
+                        'hosp_patients'
+                    ] = eval(str(day_data[
+                        'hosp_patients']))
+                else:
+                    output[day_data['date']][
+                        'hosp_patients'] = 0
+            if hosp_patients_per_million:
+                if 'hosp_patients_per_million' in day_data:
+                    output[day_data['date']][
+                        'hosp_patients_per_million'
+                    ] = eval(str(day_data[
+                        'hosp_patients_per_million']))
+                else:
+                    output[day_data['date']][
+                        'hosp_patients_per_million'] = 0
+            if weekly_icu_admissions:
+                if 'weekly_icu_admissions' in day_data:
+                    output[day_data['date']][
+                        'weekly_icu_admissions'
+                    ] = eval(str(day_data[
+                        'weekly_icu_admissions']))
+                else:
+                    output[day_data['date']][
+                        'weekly_icu_admissions'] = 0
+            if weekly_icu_admissions_per_million:
+                if 'weekly_icu_admissions_per_million' in day_data:
+                    output[day_data['date']][
+                        'weekly_icu_admissions_per_million'
+                    ] = eval(str(day_data[
+                        'weekly_icu_admissions_per_million']))
+                else:
+                    output[day_data['date']][
+                        'weekly_icu_admissions_per_million'] = 0
+            if weekly_hosp_admissions:
+                if 'weekly_hosp_admissions' in day_data:
+                    output[day_data['date']][
+                        'weekly_hosp_admissions'
+                    ] = eval(str(day_data[
+                        'weekly_hosp_admissions']))
+                else:
+                    output[day_data['date']][
+                        'weekly_hosp_admissions'] = 0
+            if weekly_hosp_admissions_per_million:
+                if 'weekly_hosp_admissions_per_million' in day_data:
+                    output[day_data['date']][
+                        'weekly_hosp_admissions_per_million'
+                    ] = eval(str(day_data[
+                        'weekly_hosp_admissions_per_million']))
+                else:
+                    output[day_data['date']][
+                        'weekly_hosp_admissions_per_million'] = 0
+
+            # Policy responses
+            if stringency_index:
+                if 'stringency_index' in day_data:
+                    output[day_data['date']][
+                        'stringency_index'
+                    ] = eval(str(day_data[
+                        'stringency_index']))
+                else:
+                    output[day_data['date']][
+                        'stringency_index'] = 0
+
+            # Reproduction rate
+            if reproduction_rate:
+                if 'reproduction_rate' in day_data:
+                    output[day_data['date']][
+                        'reproduction_rate'
+                    ] = eval(str(day_data[
+                        'reproduction_rate']))
+                else:
+                    output[day_data['date']][
+                        'reproduction_rate'] = 0
+
+            # Tests & positivity
+            if total_tests:
+                if 'total_tests' in day_data:
+                    output[day_data['date']][
+                        'total_tests'
+                    ] = eval(str(day_data[
+                        'total_tests']))
+                else:
+                    output[day_data['date']][
+                        'total_tests'] = 0
+            if new_tests:
+                if 'new_tests' in day_data:
+                    output[day_data['date']][
+                        'new_tests'
+                    ] = eval(str(day_data[
+                        'new_tests']))
+                else:
+                    output[day_data['date']][
+                        'new_tests'] = 0
+            if total_tests_per_thousand:
+                if 'total_tests_per_thousand' in day_data:
+                    output[day_data['date']][
+                        'total_tests_per_thousand'
+                    ] = eval(str(day_data[
+                        'total_tests_per_thousand']))
+                else:
+                    output[day_data['date']][
+                        'total_tests_per_thousand'] = 0
+            if new_tests_per_thousand:
+                if 'new_tests_per_thousand' in day_data:
+                    output[day_data['date']][
+                        'new_tests_per_thousand'
+                    ] = eval(str(day_data[
+                        'new_tests_per_thousand']))
+                else:
+                    output[day_data['date']][
+                        'new_tests_per_thousand'] = 0
+            if new_tests_smoothed:
+                if 'new_tests_smoothed' in day_data:
+                    output[day_data['date']][
+                        'new_tests_smoothed'
+                    ] = eval(str(day_data[
+                        'new_tests_smoothed']))
+                else:
+                    output[day_data['date']][
+                        'new_tests_smoothed'] = 0
+            if new_tests_smoothed_per_thousand:
+                if 'new_tests_smoothed_per_thousand' in day_data:
+                    output[day_data['date']][
+                        'new_tests_smoothed_per_thousand'
+                    ] = eval(str(day_data[
+                        'new_tests_smoothed_per_thousand']))
+                else:
+                    output[day_data['date']][
+                        'new_tests_smoothed_per_thousand'] = 0
+            if positive_rate:
+                if 'positive_rate' in day_data:
+                    output[day_data['date']][
+                        'positive_rate'
+                    ] = eval(str(day_data[
+                        'positive_rate']))
+                else:
+                    output[day_data['date']][
+                        'positive_rate'] = 0
+            if tests_per_case:
+                if 'tests_per_case' in day_data:
+                    output[day_data['date']][
+                        'tests_per_case'
+                    ] = eval(str(day_data[
+                        'tests_per_case']))
+                else:
+                    output[day_data['date']][
+                        'tests_per_case'] = 0
+            if tests_units:
+                if 'tests_units' in day_data:
+                    output[day_data['date']][
+                        'tests_units'
+                    ] = eval(str(day_data[
+                        'tests_units']))
+                else:
+                    output[day_data['date']][
+                        'tests_units'] = 0
+
             # Vaccinations
             if total_vaccinations:
                 if 'total_vaccinations' in day_data:
@@ -352,18 +571,24 @@ def new_case_data(country_code: str):  # ->
         return output
 
 
-def output(content: dict, country_code: str):  # ->
+def output(content: dict, country_code: str):  # -> Transform
     file_name = country_code + ".txt"
     with open(file_name, "a") as doc:
         for key in content:
-            doc.write("{'"+str(key) + "': "+str(content[key])+"}\n")
+            data_temp = [int(x) for x in key.split('-')]
+            if date_last[0] <= data_temp[0]:
+                if date_last[1] < data_temp[1]:
+                    doc.write("{'"+str(key) + "': "+str(content[key])+"}\n")
+                elif date_last[1] <= data_temp[1]:
+                    if date_last[2] < data_temp[2]:
+                        doc.write(
+                            "{'"+str(key) + "': "+str(content[key])+"}\n")
+    print("DONE")
 
 
 # =========
 #   Start
 # =========
-
-
 iso_code = input(
     "What country do you want to agregate? " +
     "(use codes provided in country_codes.txt)\n")
@@ -372,5 +597,6 @@ while iso_code not in country_codes:
     iso_code = input(
         "Wrong code please use codes provided in country_codes.txt\n")
 
+date_last = [0, 0, 0]
 
 output(new_case_data(iso_code), iso_code)
